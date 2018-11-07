@@ -45,3 +45,73 @@ penguins2 <- penguins %>%
 
 ```
 
+Exploratory graphs and a Levene's test for equal variances
+
+```{r}
+
+hist <- ggplot(penguins2, aes(x = flipper_length)) +
+  geom_histogram(aes(fill = common_name)) +
+  facet_wrap(~common_name, scale = "free")
+
+hist
+
+geom <- ggplot(penguins2, aes(sample = flipper_length)) +
+  geom_qq(aes(color = common_name)) +
+  facet_wrap(~common_name, scale = "free")
+
+geom
+
+# Based on qq-plots and histograms, observations for each group appear normally distributed. Also, n > 30 for all groups, so means will be normally distributed by CLT.
+
+```
+
+Evaluate variances and perform a Levene's Test for equal variances
+
+```{r}
+
+# If the largest sample variances is < 4x greater than the smallest sample variance , then these are "close enough" to consider variances equal
+
+variances <- penguins2 %>%
+  group_by(common_name) %>%
+  summarize(
+    variance = var(flipper_length)
+  )
+
+variances # The largest variance (33.1) is definitely not more than 4x greater than the smallest variance (15.2)
+
+# Levene's Test
+# LeveneTest function in the 'car' package
+
+levene_penguin <- leveneTest(flipper_length ~ common_name, data = penguins2)
+
+levene_penguin
+
+# HO: No difference in variances (variances are equal)
+# HA: Variances are NOT equal
+
+# There is no significanct difference in variances across species. 
+```
+
+One-way ANOVA for penguin flipper length by species (common_name)
+
+
+```{r}
+
+# HO: Means across all groups are equal
+# HA: At least two group means differ significantly
+
+penguin_aov <- aov(flipper_length ~ common_name, data = penguins2)
+summary(penguin_aov)
+
+# Post -hoc testing by Tukey's HSD
+# HO: No significant difference in pairwise means
+# HA: There is a significant difference in pairwise means
+
+penguin_ph <- TukeyHSD(penguin_aov)
+penguin_ph
+
+# aov.test function in the 'onwaytests' packages does allow for inline references
+
+```
+
+Mean flipper lengths of female penguins differed significantly for all species studied (one-way anova, F(df) = statistic, p < 0.001, $\alpha$ = 0.05 with post-hoc Tukey's HSD, $\alpha$ = 0.05)
