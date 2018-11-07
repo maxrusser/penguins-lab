@@ -1,0 +1,47 @@
+---
+title: "penguin flipper length ANOVA"
+author: "Max Russer"
+date: "November 7, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. Load packages and read in the penguins.csv data
+
+Packages: tidyverse, car, onewaytests
+
+```{r message = FALSE}
+
+library(tidyverse)
+library(car)
+library(onewaytests)
+
+penguins <- read_csv("penguins.csv")
+```
+
+Our question: Is there a significant difference in mean flipper lengths for female Chinstrap, Gentoo, and Adelie Penguins near Palmer Arhcipelago?
+
+Maybe I can use a one-way ANOVA...
+-Independent observations
+- Equal variance (Levene's test)
+- Normality (histogram/qqplots)
+
+```{r}
+
+counts <- with(penguins, table(species, sex))
+
+penguins2 <- penguins %>%
+  mutate (
+    common_name = 
+      case_when(
+        species == "Chinstrap penguin (Pygoscelis antarctica)" ~ "Chinstrap", species == "Gentoo penguin (Pygoscelis papua)" ~ "Gentoo", species == "Adelie Penguin (Pygoscelis adeliae)" ~ "Adelie"
+      )
+  ) %>%
+  select(-species) %>%
+  filter(sex == "FEMALE")
+
+```
+
